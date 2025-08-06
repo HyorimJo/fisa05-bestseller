@@ -1,28 +1,32 @@
-import requests
+from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
 from datetime import datetime
 
 def fetch_kyobo_best_sellers():
-    url = "https://www.kyobobook.co.kr/bestseller/online"
-    headers = {"User-Agent": "Mozilla/5.0"}
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto("https://www.kyobobook.co.kr/bestseller/online", timeout=60000)
+        page.wait_for_selector("div.detail", timeout=10000)
 
-    response = requests.get(url, headers=headers)
-    soup = BeautifulSoup(response.text, "html.parser")
+        html = page.content()
+        soup = BeautifulSoup(html, "html.parser")
+        browser.close()
 
-    books = []
-    for idx, item in enumerate(soup.select("div.detail"), start=1):
-        title_tag = item.select_one("div.title")
-        author_tag = item.select_one("div.author")
+        books = []
+        for idx, item in enumerate(soup.select("div.detail"), start=1):
+            title_tag = item.select_one("div.title")
+            author_tag = item.select_one("div.author")
 
-        if title_tag and author_tag:
-            title = title_tag.text.strip()
-            author = author_tag.text.strip().replace('\n', '').replace('저자 더보기', '')
-            books.append(f"{idx}. **{title}** - _{author}_")
+            if title_tag and author_tag:
+                title = title_tag.text.strip()
+                author = author_tag.text.strip().replace('\n', '').replace('저자 더보기', '')
+                books.append(f"{idx}. **{title}** - _{author}_")
 
-        if idx >= 20:  # 상위 20권만 출력
-            break
+            if idx >= 20:
+                break
 
-    return books
+        return books
 
 def update_readme(books):
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -38,5 +42,5 @@ def update_readme(books):
         f.write(content)
 
 if __name__ == "__main__":
-    best_sellers = fetch_kyobo_best_sellers()
-    update_readme(best_sellers)
+    books = fetch_kyobo_best_sellers()
+    update_readme(books)
