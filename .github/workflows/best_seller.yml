@@ -1,12 +1,12 @@
-name: Hourly Kyobo Best Seller Update
+name: Hourly Aladin Best Seller Update
 
 on:
   schedule:
-    - cron: '0 * * * *'
+    - cron: '0 * * * *'  # 매시 정각 (UTC 기준 → KST 기준으론 오전 9시부터 매시)
   workflow_dispatch:
 
 jobs:
-  update-best-sellers:
+  update-bestsellers:
     runs-on: ubuntu-latest
 
     steps:
@@ -19,17 +19,15 @@ jobs:
           python-version: '3.10'
 
       - name: Install dependencies
-        run: |
-          pip install playwright beautifulsoup4
-          playwright install chromium
+        run: pip install beautifulsoup4 requests
 
-      - name: Run best_seller.py
-        run: python best_seller.py
+      - name: Run script
+        run: python aladin_best_seller.py
 
-      - name: Commit and push changes
+      - name: Commit and push if changed
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add README.md
-          git diff --cached --quiet || git commit -m "🕒 Update 교보문고 베스트셀러 ($(date '+%Y-%m-%d %H:%M'))"
+          git diff --cached --quiet || git commit -m "🕒 Update 알라딘 베스트셀러 ($(date '+%Y-%m-%d %H:%M'))"
           git push
