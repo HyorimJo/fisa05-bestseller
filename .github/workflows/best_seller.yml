@@ -1,0 +1,33 @@
+name: Hourly YES24 Best Seller Update
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # ⏰ 매시간 00분마다 (UTC 기준 → KST 기준으론 9시부터 매시간)
+  workflow_dispatch:
+
+jobs:
+  update-best-sellers:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4
+
+      - name: Run best_seller.py
+        run: python best_seller.py
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git diff --cached --quiet || git commit -m "🕒 Update YES24 베스트셀러 (자동 업데이트: $(date '+%Y-%m-%d %H:%M'))"
+          git push
