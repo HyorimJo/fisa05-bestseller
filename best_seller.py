@@ -1,35 +1,36 @@
-from urllib.request import urlopen
-from bs4 import BeautifulSoup as bs
+from playwright.sync_api import sync_playwright
+from bs4 import BeautifulSoup
 from datetime import datetime
+import time
 
 def fetch_kyobo_best_sellers():
-    url = "http://www.kyobobook.co.kr/bestSellerNew/bestseller.laf"
-    html = urlopen(url)
-    bsObject = bs(html, "html.parser")
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto("https://www.kyobobook.co.kr/bestseller/online", timeout=60000)
 
-    # 집계 기준 날짜 추출
-    try:
-        week_standard = bsObject.find('h4', {'class': 'title_best_basic'}).find('small').text.strip()
-    except AttributeError:
-        week_standard = "(날짜 정보를 불러올 수 없습니다)"
+        time.sleep(5)  # JS 로딩 대기
+        html = page.content()
+        browser.close()
 
-    # 베스트셀러 리스트 추출
-    bestseller_contents = bsObject.find('ul', {'class': 'list_type01'})
-    bestseller_list = bestseller_contents.findAll('div', {'class': 'detail'})
+        soup = BeautifulSoup(html, "html.parser")
 
-    books = []
-    for idx, book in enumerate(bestseller_list[:20], start=1):
-        title = book.find('div', {'class': 'title'}).find('strong').text.strip()
-        subtitle = book.find('div', {'class': 'subtitle'}).text.strip()
-        books.append(f"{idx}. **{title}**\n   - {subtitle}")
+        books = []
+        for idx, item in enumerate(soup.select("div.detail"), start=1):
+            title_tag = item.select_one("div.title")
+            author_tag = item.select_one("div.author")
+            if title_tag and author_tag:
+                title = title_tag.text.strip()
+                author = author_tag.text.strip().replace('\n', '').replace('저자 더보기', '')
+                books.append(f"{idx}. **{title}** - _{author}_")
+            if idx >= 20:
+                break
 
-    return week_standard, books
+        return books
 
-def update_readme(week_standard, books):
+def update_readme(books):
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
     content = f"# 📚 교보문고 베스트셀러 (업데이트: {now})\n\n"
-    content += f"📅 기준일: {week_standard}\n\n"
-
     if books:
         content += "\n".join(books)
     else:
@@ -41,5 +42,5 @@ def update_readme(week_standard, books):
         f.write(content)
 
 if __name__ == "__main__":
-    week_standard, best_sellers = fetch_kyobo_best_sellers()
-    update_readme(week_standard, best_sellers)
+    books = fetch_kyobo_best_sellers()
+    update_readme(books)
