@@ -2,8 +2,8 @@ name: Hourly Kyobo Best Seller Update
 
 on:
   schedule:
-    - cron: '0 * * * *'
-  workflow_dispatch:
+    - cron: '0 * * * *'  # 매시간 정각 실행 (UTC 기준)
+  workflow_dispatch:     # 수동 실행도 가능
 
 jobs:
   update-best-sellers:
@@ -20,7 +20,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install playwright
+          pip install playwright beautifulsoup4
           playwright install chromium
 
       - name: Run best_seller.py
