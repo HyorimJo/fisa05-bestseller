@@ -22,7 +22,7 @@ jobs:
         run: pip install beautifulsoup4 requests
 
       - name: Run script
-        run: python aladin_best_seller.py
+        run: python best_seller.py
 
       - name: Commit and push if changed
         run: |
