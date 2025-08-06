@@ -2,7 +2,7 @@ name: Hourly Aladin Best Seller Update
 
 on:
   schedule:
-    - cron: '0 * * * *'  # 매시 정각 (UTC 기준 → KST 기준으론 오전 9시부터 매시)
+    - cron: '0 * * * *'  # 매시 정각
   workflow_dispatch:
 
 jobs:

@@ -2,21 +2,16 @@ import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
 
-def fetch_aladin_bestsellers():
-    url = "https://www.aladin.co.kr/shop/wbrowse.aspx?CID=8256"  # 종합 베스트
-    headers = {"User-Agent": "Mozilla/5.0"}
-
-    response = requests.get(url, headers=headers)
-    soup = BeautifulSoup(response.text, "html.parser")
+def fetch_aladin_rss_bestsellers():
+    url = "https://www.aladin.co.kr/rsscenter/rss_feeds.aspx?cid=0&type=Bestseller"
+    response = requests.get(url)
+    soup = BeautifulSoup(response.content, "xml")
 
     books = []
-    for idx, item in enumerate(soup.select("div.ss_book_box")[:20], start=1):
-        title_tag = item.select_one("a.bo3")
-        author_tag = item.select_one("div.ss_book_list > ul > li:nth-child(1)")
-        if title_tag:
-            title = title_tag.text.strip()
-            author = author_tag.text.strip() if author_tag else "저자 정보 없음"
-            books.append(f"{idx}. **{title}** - _{author}_")
+    for idx, item in enumerate(soup.find_all("item")[:20], start=1):
+        title = item.title.text.strip()
+        link = item.link.text.strip()
+        books.append(f"{idx}. [{title}]({link})")
 
     return books
 
@@ -35,5 +30,5 @@ def update_readme(books):
         f.write(content)
 
 if __name__ == "__main__":
-    best_sellers = fetch_aladin_bestsellers()
-    update_readme(best_sellers)
+    books = fetch_aladin_rss_bestsellers()
+    update_readme(books)
