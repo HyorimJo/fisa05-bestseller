@@ -1,8 +1,9 @@
-name: Hourly YES24 Best Seller Update
+# .github/workflows/best_seller.yml
+name: Hourly Kyobo Best Seller Update
 
 on:
   schedule:
-    - cron: '0 * * * *'  # ⏰ 매시간 00분마다 (UTC 기준 → KST 기준으론 9시부터 매시간)
+    - cron: '0 * * * *'  # 매시간 정각 실행 (UTC 기준)
   workflow_dispatch:
 
 jobs:
@@ -29,5 +30,5 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add README.md
-          git diff --cached --quiet || git commit -m "🕒 Update YES24 베스트셀러 (자동 업데이트: $(date '+%Y-%m-%d %H:%M'))"
+          git diff --cached --quiet || git commit -m "🕒 Update 교보문고 베스트셀러 ($(date '+%Y-%m-%d %H:%M'))"
           git push
